@@ -1,1 +1,2 @@
 # fursight-ai
+.\gitpush.bat
