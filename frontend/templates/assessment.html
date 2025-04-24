@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet Grooming Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .radial-progress {
+            --value: 0;
+            --size: 8rem;
+            --thickness: 12px;
+        }
+        
+        .temperament-badge {
+            transition: all 0.3s ease;
+        }
+        
+        .temperament-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-placeholder {
+            background: linear-gradient(135deg, #f0f0f0 25%, #e0e0e0 25%, #e0e0e0 50%, #f0f0f0 50%, #f0f0f0 75%, #e0e0e0 75%);
+            background-size: 20px 20px;
+            animation: move 2s linear infinite;
+        }
+        
+        @keyframes move {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 20px 20px;
+            }
+        }
+        
+        .all-good-banner {
+            background: linear-gradient(135deg, #4ade80 0%, #22d3ee 100%);
+        }
+        
+        .schedule-banner {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-bold text-indigo-800 mb-2">Pet Grooming Analysis</h1>
+            <p class="text-gray-600">AI-powered grooming recommendations for your furry friend</p>
+        </header>
+        
+        <!-- Quick Schedule Button -->
+        <div class="flex justify-end mb-6">
+            <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300 flex items-center">
+                <i class="fas fa-calendar-check mr-2"></i> Quick Schedule
+            </button>
+        </div>
+        
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Pet Snapshot Card -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="p-6">
+                        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Pet Snapshot</h2>
+                        <div class="flex flex-col md:flex-row gap-6">
+                            <div class="flex-shrink-0">
+                                <div class="relative w-48 h-48 rounded-lg overflow-hidden shadow">
+                                    <img src="https://images.unsplash.com/photo-1586671267731-da2cf3ceeb80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" 
+                                         alt="Pet photo" class="w-full h-full object-cover">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                                </div>
+                            </div>
+                            <div class="flex-grow">
+                                <div class="mb-4">
+                                    <h3 class="text-xl font-bold text-gray-900">Max</h3>
+                                    <p class="text-gray-500 flex items-center">
+                                        <i class="fas fa-calendar-alt mr-2"></i>
+                                        Analysis generated: <span class="font-medium ml-1">June 15, 2023</span>
+                                    </p>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="text-sm text-gray-500">Breed</p>
+                                        <p class="font-medium">Golden Retriever</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">Age</p>
+                                        <p class="font-medium">3 years</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">Coat Type</p>
+                                        <p class="font-medium">Double coat</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">Weight</p>
+                                        <p class="font-medium">65 lbs</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- All Good Banner (conditionally shown) -->
+                <div class="all-good-banner rounded-xl shadow-md overflow-hidden text-white p-6">
+                    <div class="flex items-center">
+                        <div class="bg-white/20 p-3 rounded-full mr-4">
+                            <i class="fas fa-check-circle text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold">All Good!</h3>
+                            <p class="opacity-90">No services needed for now. Your pet looks clean and well-groomed!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="result">Analyzing photo... please wait.</div>
+                <script>
+                    function fetchAssessment() {
+                        fetch('/assessment/result')
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.status === 'ok') {
+                                    document.getElementById('result').innerText = data.result;
+                                } else {
+                                    setTimeout(fetchAssessment, 3000); // retry in 3 sec
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Error fetching assessment:', err);
+                                setTimeout(fetchAssessment, 5000); // retry on failure
+                            });
+                    }
+
+                    window.onload = fetchAssessment;
+                </script>
+                
+                <!-- Grooming Needs Section -->
+                <div>
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Grooming Needs</h2>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Immediate Needs Card -->
+                        <div class="bg-white rounded-xl shadow-md overflow-hidden border-l-4 border-red-400">
+                            <div class="p-6">
+                                <div class="flex items-center mb-4">
+                                    <div class="bg-red-100 p-2 rounded-full mr-3">
+                                        <i class="fas fa-exclamation-circle text-red-500 text-xl"></i>
+                                    </div>
+                                    <h3 class="text-xl font-bold text-gray-800">Immediate Needs</h3>
+                                </div>
+                                <ul class="space-y-3">
+                                    <li class="flex items-start">
+                                        <span class="text-red-500 mr-2 mt-1"><i class="fas fa-check-circle"></i></span>
+                                        <span class="font-medium">De-shedding treatment</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="text-red-500 mr-2 mt-1"><i class="fas fa-check-circle"></i></span>
+                                        <span class="font-medium">Nail trim</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="text-red-500 mr-2 mt-1"><i class="fas fa-check-circle"></i></span>
+                                        <span class="font-medium">Ear cleaning</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="text-red-500 mr-2 mt-1"><i class="fas fa-check-circle"></i></span>
+                                        <span class="font-medium">Paw pad moisturizing</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Recommended Services Card -->
+                        <div class="bg-white rounded-xl shadow-md overflow-hidden border-l-4 border-indigo-400">
+                            <div class="p-6">
+                                <div class="flex items-center mb-4">
+                                    <div class="bg-indigo-100 p-2 rounded-full mr-3">
+                                        <i class="fas fa-spa text-indigo-500 text-xl"></i>
+                                    </div>
+                                    <h3 class="text-xl font-bold text-gray-800">Recommended Services</h3>
+                                </div>
+                                <ul class="space-y-3">
+                                    <li class="flex items-start justify-between">
+                                        <div>
+                                            <span class="text-indigo-500 mr-2 mt-1"><i class="fas fa-check-circle"></i></span>
+                                            <span class="font-medium">Full wash & blow dry</span>
+                                        </div>
+                                        <span class="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">Every 4-6 weeks</span>
+                                    </li>
+                                    <li class="flex items-start justify-between">
+                                        <div>
+                                            <span class="text-indigo-500 mr-2 mt-1"><i class="fas fa-check-circle"></i></span>
+                                            <span class="font-medium">De-matting treatment</span>
+                                        </div>
+                                        <span class="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">Every 8 weeks</span>
+                                    </li>
+                                    <li class="flex items-start justify-between">
+                                        <div>
+                                            <span class="text-indigo-500 mr-2 mt-1"><i class="fas fa-check-circle"></i></span>
+                                            <span class="font-medium">Teeth brushing</span>
+                                        </div>
+                                        <span class="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">Weekly</span>
+                                    </li>
+                                    <li class="flex items-start justify-between">
+                                        <div>
+                                            <span class="text-indigo-500 mr-2 mt-1"><i class="fas fa-check-circle"></i></span>
+                                            <span class="font-medium">Sanitary trim</span>
+                                        </div>
+                                        <span class="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">Every 6-8 weeks</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Data Visualization Section -->
+                <div>
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Data Visualization</h2>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Grooming Intensity -->
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Grooming Intensity Level</h3>
+                            <div class="flex flex-col items-center">
+                                <div class="radial-progress text-indigo-500" style="--value:75; --size:8rem; --thickness:12px;">
+                                    75%
+                                </div>
+                                <p class="mt-4 text-gray-600 text-center">Moderate-High intensity grooming recommended based on coat condition and needs</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Age vs Life Expectancy -->
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Age vs Breed Life Expectancy</h3>
+                            <div class="h-48 chart-placeholder rounded-lg mb-4 flex items-center justify-center">
+                                <div class="text-center p-4">
+                                    <p class="font-bold text-gray-700">3 years (current age)</p>
+                                    <div class="w-full bg-gray-200 rounded-full h-4 my-2">
+                                        <div class="bg-indigo-500 h-4 rounded-full" style="width: 20%"></div>
+                                    </div>
+                                    <p class="text-sm text-gray-600">Average lifespan: 10-12 years</p>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 text-center">Your pet is in the prime of life! Regular grooming will help maintain health.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column -->
+            <div class="space-y-8">
+                <!-- Profile Breakdown Card -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="p-6">
+                        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Profile Breakdown</h2>
+                        
+                        <!-- Breed Info -->
+                        <div class="mb-6">
+                            <h3 class="text-lg font-medium text-gray-700 mb-2">Breed Characteristics</h3>
+                            <div class="flex items-center mb-3">
+                                <div class="bg-yellow-100 p-2 rounded-full mr-3">
+                                    <i class="fas fa-dog text-yellow-500"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Golden Retriever</p>
+                                    <p class="text-sm text-gray-500">Sporting Group</p>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 text-sm">Known for their friendly, tolerant attitudes and intelligence. Their dense, water-repellent coat requires regular grooming.</p>
+                        </div>
+                        
+                        <!-- Temperament -->
+                        <div class="mb-6">
+                            <h3 class="text-lg font-medium text-gray-700 mb-3">Temperament Analysis</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="temperament-badge bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                                    <i class="fas fa-smile mr-1"></i> Friendly
+                                </span>
+                                <span class="temperament-badge bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                                    <i class="fas fa-bolt mr-1"></i> Energetic
+                                </span>
+                                <span class="temperament-badge bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
+                                    <i class="fas fa-brain mr-1"></i> Intelligent
+                                </span>
+                                <span class="temperament-badge bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
+                                    <i class="fas fa-heart mr-1"></i> Affectionate
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Grooming Frequency -->
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-700 mb-2">Recommended Grooming Frequency</h3>
+                            <div class="flex items-center">
+                                <div class="bg-indigo-100 p-2 rounded-full mr-3">
+                                    <i class="fas fa-calendar-week text-indigo-500"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Every 4-6 weeks</p>
+                                    <p class="text-sm text-gray-500">For optimal coat and skin health</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tips Card -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="p-6">
+                        <h2 class="text-2xl font-semibold text-gray-800 mb-4">At-Home Care Tips</h2>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <div class="bg-blue-100 p-1 rounded-full mr-3 mt-1">
+                                    <i class="fas fa-brush text-blue-500 text-sm"></i>
+                                </div>
+                                <span>Brush coat 2-3 times weekly to prevent matting</span>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="bg-blue-100 p-1 rounded-full mr-3 mt-1">
+                                    <i class="fas fa-teeth text-blue-500 text-sm"></i>
+                                </div>
+                                <span>Brush teeth regularly with pet-safe toothpaste</span>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="bg-blue-100 p-1 rounded-full mr-3 mt-1">
+                                    <i class="fas fa-ear-listen text-blue-500 text-sm"></i>
+                                </div>
+                                <span>Check ears weekly for redness or odor</span>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="bg-blue-100 p-1 rounded-full mr-3 mt-1">
+                                    <i class="fas fa-paw text-blue-500 text-sm"></i>
+                                </div>
+                                <span>Inspect paws after walks for debris or irritation</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Schedule Banner -->
+        <div class="schedule-banner rounded-xl shadow-lg overflow-hidden text-white mt-12">
+            <div class="p-8 flex flex-col md:flex-row items-center justify-between">
+                <div class="mb-6 md:mb-0">
+                    <h2 class="text-2xl font-bold mb-2">Ready to pamper your pet?</h2>
+                    <p class="opacity-90 max-w-lg">Book an appointment with our certified groomers and give your furry friend the care they deserve!</p>
+                </div>
+                <button class="bg-white text-indigo-600 hover:bg-gray-100 font-bold py-3 px-6 rounded-lg transition duration-300 flex items-center whitespace-nowrap">
+                    <i class="fas fa-calendar-check mr-2"></i> Schedule Appointment
+                </button>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="mt-12 pt-6 border-t border-gray-200 text-center text-gray-500 text-sm">
+            <p>© 2023 Paws & Claws Grooming Salon. All rights reserved.</p>
+            <p class="mt-1">AI analysis provided by PetVision™ technology</p>
+        </footer>
+    </div>
+</body>
+</html>
