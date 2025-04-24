@@ -6,12 +6,17 @@ from authlib.integrations.flask_client import OAuth
 import json
 import time
 import logging
+import base64
 
 app = Flask(__name__)
 app.secret_key = 'temp_secret'
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+# Silence Kafka debug noise
+logging.getLogger("kafka").setLevel(logging.WARNING)
+logging.getLogger("kafka.conn").setLevel(logging.WARNING)
+logging.getLogger("kafka.client").setLevel(logging.WARNING)
 
 producer = None
 
@@ -48,20 +53,19 @@ def upload():
     file = request.files['petPhoto']
     if file:
         photo_id = str(uuid.uuid4())
-        content = file.read()
-        # Send to Kafka (as base64 or bytes)
+        content = base64.b64encode(file.read()).decode('utf-8')
         message = {
             'id': photo_id,
             'filename': file.filename,
-            'content': content.decode('latin1')  # OR use base64.b64encode(content).decode()
+            'content': content
         }
-
         logger.info(f"[Kafka SEND] Topic: 'dog-photos' | Event: {message}")
-
-
-        get_kafka_producer().send('dog-photos', message)
+        get_kafka_producer().send('dog-photos', message).get(timeout=10)
         session['photo_id'] = photo_id
         return redirect(url_for('assessment'))
+    elif not file:
+        logger.warning("No file uploaded in request")
+        return redirect(url_for('index'))
 
 @app.route('/assessment')
 def assessment():
@@ -81,7 +85,7 @@ def assessment_result():
         logger.warning("No photo_id in session for /assessment/result")
         return jsonify({'status': 'error', 'message': 'no photo ID'}), 400
 
-    # In production: replace this with Redis or DB check
+    # replace this with Redis or DB check
     consumer = KafkaConsumer(
         'dog-assessments',
         bootstrap_servers='kafka.fursight.svc.cluster.local:9092',
@@ -101,21 +105,4 @@ def assessment_result():
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
-
-# KEYCLOAK_URL = "http://host.minikube.internal:8081"
-# KEYCLOAK_REALM = "findex"
-# DISCOVERY_URL = f"{KEYCLOAK_URL}/realms/{KEYCLOAK_REALM}/.well-known/openid-configuration"
-# KEYCLOAK_BROWSER_URL = "http://localhost:8081"
-# CLIENT_ID = "flask-app"
-# CLIENT_SECRET = "YOUR_KEYCLOAK_CLIENT_SECRET"
-
-# oauth = OAuth(app)
-# oauth.register(
-#     name='keycloak',
-#     client_id=CLIENT_ID,
-#     client_secret=CLIENT_SECRET,
-#     # server_metadata_url='http://host.minikube.internal:8081/realms/findex/.well-known/openid-configuration',
-#     server_metadata_url=DISCOVERY_URL,
-#     client_kwargs={'scope': 'openid profile email'}
-# )
 
