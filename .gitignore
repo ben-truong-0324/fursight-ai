@@ -5,7 +5,6 @@ __pycache__/
 gitpush.bat
 # C extensions
 *.so
-scripts/
 # Distribution / packaging
 .Python
 build/
