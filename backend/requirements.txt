@@ -1,7 +1,0 @@
-numpy
-pandas
-fastapi
-uvicorn
-python-jose
-requests
-kafka-python

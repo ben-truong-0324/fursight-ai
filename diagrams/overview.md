@@ -1,33 +1,121 @@
-FurrSight AI: Project Overview
-1. Vision
-FurrSight AI aims to revolutionize the pet grooming industry by creating the world's first large-scale, structured dataset of dog grooming transformations. By systematically collecting "before and after" imagery paired with descriptions of the services rendered, we can power a new generation of AI models capable of predicting grooming outcomes, recommending services, and educating pet owners.
+FurrSight AI: System Architecture Specification
+1. Project Goal & Philosophy
+The primary objective is to build a robust, scalable platform for creating the FurrSight Grooming Dataset, a large-scale, structured collection of "before and after" dog grooming images. The system is designed as an internal research tool first, built with production-grade components to allow for a seamless future transition to a public-facing application. The architecture prioritizes a decoupled, microservices-based approach for maintainability and scalability.
 
-2. Problem Statement
-The internet is filled with unstructured data on dog grooming, including countless images and videos on platforms like YouTube, Pinterest, and Instagram. However, this data lacks the structure needed for effective machine learning. There is no readily available dataset that programmatically links a "before" photo (e.g., matted, overgrown) to an "after" photo, along with a description of the specific grooming techniques used (e.g., "lion cut," "dematting," "summer shave"). This makes it difficult to train models for specialized grooming-related tasks.
+2. Component Breakdown
+The system is deployed as a set of containerized services within a single Kubernetes cluster, managed by a Traefik edge router.
 
-3. High-Level Plan
-Our project is focused on a single primary checkpoint: creating the initial version of the FurrSight Grooming Dataset. This will be accomplished through a three-stage data pipeline.
+2.1. Frontend Service
 
-Project Stages:
+Technology: Next.js (React)
 
-Phase 1: Query Generation
+Role: Provides the primary User Interface (UI) for the research team.
 
-Leverage a Large Language Model (LLM) to generate thousands of diverse and creative search queries related to dog grooming.
+Responsibilities:
 
-Phase 2: Web Scraping
+Displaying and curating the grooming_pairs dataset.
 
-Deploy an automated scraper to use the generated queries on platforms like Google Images and YouTube.
+Providing forms to initiate and monitor background jobs (e.g., web scraping, batch inference).
 
-The scraper will gather URLs for images, videos, and associated web page content.
+Communicating exclusively with the Backend API Service.
 
-Phase 3: Data Extraction & Structuring
+2.1.b Authentication Layer
 
-Process the scraped content to identify and download relevant media, specifically looking for "before" and "after" image pairs.
+Goal: To ensure only authorized research team members can access the platform and its data.
 
-Use a Vision-Language Model (VLM) to analyze the images and text to identify the grooming services performed.
+Method: The system will integrate with an Identity Provider (IdP) using standard protocols like OpenID Connect (OIDC) or SAML. All user-facing services (e.g., the web UI) and APIs will require authentication. This provides centralized user management and single sign-on (SSO) capabilities.
 
-Organize this information into a clean, structured dataset ready for model fine-tuning.
+2.2. Backend API Service
 
-4. End Goal
-The successful completion of this project will result in grooming_dataset_v1.jsonl, a file containing thousands of structured entries. This dataset will be the foundational asset for all future FurrSight AI model development, enabling us to fine-tune models that can understand the nuances of dog grooming.
+Technology: FastAPI (Python)
 
+Role: The central nervous system of the application; acts as a smart gateway.
+
+Responsibilities:
+
+Exposing a RESTful API for the Next.js frontend to consume.
+
+Handling user authentication and authorization.
+
+Validating incoming data.
+
+Creating and dispatching jobs to the Redis Task Queue for background processing.
+
+Querying the PostgreSQL database to serve data to the frontend.
+
+Interacting with the Redis Cache to improve performance.
+
+2.3. Inference Server
+
+Technology: vLLM
+
+Role: A dedicated, high-performance server for running ML models on GPUs.
+
+Responsibilities:
+
+Serves LLMs for tasks like generating creative search queries (Phase 1 of the project).
+
+Serves Vision-Language Models (VLMs) for analyzing image pairs and identifying grooming services (Phase 3).
+
+Accessed via internal cluster DNS by other services (e.g., FastAPI or Background Workers).
+
+2.4. Cache & Task Queue
+
+Technology: Redis
+
+Role: A multi-purpose, in-memory data store.
+
+Responsibilities:
+
+Task Broker for Celery: Acts as the message queue for all asynchronous background jobs. This is its most critical function.
+
+API Response Cache: Caches frequent database queries to reduce latency and load on PostgreSQL.
+
+2.5. Background Workers
+
+Technology: Celery & Python
+
+Role: A fleet of stateless worker pods that execute long-running, asynchronous tasks.
+
+Responsibilities:
+
+Polling the Redis Task Queue for new jobs.
+
+Executing specific Python scripts based on job type, such as:
+
+scraper.py: Performs web scraping (Phase 2).
+
+inference_job.py: Runs batch inference tasks using the vLLM server.
+
+data_processor.py: Cleans and structures raw scraped data.
+
+Interacts directly with Persistent Storage (PostgreSQL and S3).
+
+2.6. Persistent Storage
+
+PostgreSQL Database:
+
+Role: The source of truth for all structured metadata.
+
+Responsibilities: Stores information about jobs, verified grooming pairs, dog breeds, services, and relationships.
+
+S3-Compatible Object Storage (MinIO):
+
+Role: The store for all unstructured binary data.
+
+Responsibilities: Stores raw scraped images, log files, dataset exports, and model artifacts.
+
+3. Key Workflow: Asynchronous Web Scraping Job
+A researcher uses the Next.js frontend to submit a form with scraping parameters.
+
+The frontend sends a POST request to the FastAPI backend.
+
+The FastAPI endpoint validates the request, creates a job message (e.g., { "task": "scrape", "params": {...} }), and pushes it to the Redis queue. It immediately returns a 202 Accepted response.
+
+A Celery Worker pod, listening to the queue, picks up the job.
+
+The Worker executes the scraper.py script with the job parameters.
+
+The script downloads images to S3/MinIO and writes the associated metadata and job status updates to the PostgreSQL database.
+
+The Next.js frontend periodically polls a FastAPI endpoint to get the job status from PostgreSQL and update the UI.
