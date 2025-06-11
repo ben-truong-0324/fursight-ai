@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FurrSight AI | Project Phases</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #2c3e50;
+            --primary-color: #3498db;
+            --card-bg: #f8f9fa;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --primary-color: #2980b9;
+            --card-bg: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        .dark-mode-toggle-btn {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        .dark-mode-toggle-btn:hover {
+            opacity: 0.9;
+        }
+
+        .phase-container {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        .phase-card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            background-color: var(--card-bg);
+            transition: all 0.3s ease;
+        }
+
+        .phase-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .phase-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .phase-description {
+            color: #6c757d;
+            line-height: 1.6;
+        }
+
+        .timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+
+        .timeline-item {
+            padding: 1rem;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            /* --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --primary-color: #2980b9;
+            --card-bg: #2c3e50; */
+
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .progress {
+            width: 75%;
+            background-color: var(--primary-color);
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <button class="dark-mode-toggle-btn" onclick="toggleTheme()">Toggle Dark Mode</button>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <header class="hero-section mb-5 text-center">
+            <h1 class="display-4 fw-bold">FurrSight AI Project Phases</h1>
+            <p class="lead">Transforming dog grooming insights through intelligent image processing</p>
+           
+        </header>
+
+        <!-- Project Phases -->
+        <section class="phase-container">
+            <!-- Progress Timeline -->
+            <div class="timeline mb-5">
+                <div class="timeline-item phase-card">
+                    <h3>Phase 1: Query Generation</h3>
+                    <p>Leveraging a Large Language Model (LLM) to generate diverse search queries related to dog grooming.</p>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 25%"></div>
+                    </div>
+                </div>
+
+                <div class="timeline-item phase-card">
+                    <h3>Phase 2: Web Scraping</h3>
+                    <p>Deploying an automated scraper to gather URLs for images, videos, and web content from platforms like Google Images and YouTube.</p>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 50%"></div>
+                    </div>
+                </div>
+
+                <div class="timeline-item phase-card">
+                    <h3>Phase 3: Data Extraction & Structuring</h3>
+                    <p>Processing scraped content to identify and download relevant media, focusing on "before" and "after" image pairs. Using a Vision-Language Model (VLM) to analyze images and text, then organizing the data into a clean, structured format.</p>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 75%"></div>
+                    </div>
+                </div>
+            </div>
+
+           
+        </section>
+    </div>
+
+    <script>
+        // Dark Mode Toggle
+        function toggleTheme() {
+            const body = document.body;
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+            }
+        }
+    </script>
+</body>
+</html>
