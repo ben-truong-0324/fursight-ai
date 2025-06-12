@@ -1,16 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "fastapi-chart.fullname" . }}
+  name: {{ include "backend-fastapi.fullname" . }}
   labels:
-    {{- include "fastapi-chart.labels" . | nindent 4 }}
+    {{- include "backend-fastapi.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
-      {{- include "fastapi-chart.selectorLabels" . | nindent 6 }}
+      {{- include "backend-fastapi.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,7 +16,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "fastapi-chart.labels" . | nindent 8 }}
+        {{- include "backend-fastapi.labels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -27,7 +25,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "fastapi-chart.serviceAccountName" . }}
+      serviceAccountName: {{ include "backend-fastapi.serviceAccountName" . }}
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}

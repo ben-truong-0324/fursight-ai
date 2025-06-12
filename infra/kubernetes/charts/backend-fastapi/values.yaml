@@ -1,0 +1,19 @@
+# backend-fastapi/values.yaml
+
+replicaCount: 1
+
+image:
+  repository: backend-fastapi
+  pullPolicy: IfNotPresent # Crucial for using local k3d images
+  tag: "0.1.0"
+
+service:
+  type: ClusterIP
+  port: 8000 # The FastAPI app runs on port 8000
+
+# We are not using Ingress or a ServiceAccount for this simple service yet
+ingress:
+  enabled: false
+
+serviceAccount:
+  create: false

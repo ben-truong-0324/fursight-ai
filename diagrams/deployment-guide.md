@@ -491,36 +491,123 @@ Password: prom-operator
 
 
 
-1.  Navigate to your FastAPI application's source code directory:
-    `cd apps/fastapi-backend/`
-2.  Run the Helm command to create a new chart named `backend-chart`:
-    `helm create backend-chart`
-3.  Poetry init 
-    poetry add fastapi "uvicorn[standard]" python-multipart sqlalchemy psycopg2-binary alembic celery redis "python-jose[cryptography]" "passlib[bcrypt]" pydantic-settings httpx
+# now for fastapi
+mkdir -p apps/backend-fastapi
+# we will use poetry
+curl -sSL https://install.python-poetry.org | python3 -
+cd apps/backend-fastapi
+poetry init
+poetry add fastapi "uvicorn[standard]"
+# poetry run uvicorn main:app --reload 
+touch .dockerignore
+    # Local virtual environment
+    .venv
+    venv
 
-### Step 3.2: Containerize the Application & Import Local Image
-Build a Docker image locally and load it directly into your k3d cluster, skipping a cloud registry.
+    # Python cache
+    __pycache__/
+    *.pyc
+    *.pyo
+    *.pyd
 
-1.  **Create a `Dockerfile`** in `apps/fastapi-backend/`:
-    ```dockerfile
-    # apps/fastapi-backend/Dockerfile
-    FROM python:3.11-slim
-    WORKDIR /app
-    RUN pip install poetry
-    COPY poetry.lock pyproject.toml ./
-    RUN poetry install --no-dev --no-root
-    COPY . .
-    EXPOSE 8000
-    CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-    ```
-2.  **Build the Docker Image Locally.** From the `apps/fastapi-backend/` directory, run:
-    ```bash
-    docker build -t fursight-fastapi:0.1.0 .
-    ```
-3.  **Import the Local Image into your k3d Cluster.** This is the crucial step for a local-only workflow.
-    ```bash
-    k3d image import fursight-fastapi:0.1.0 --cluster fursight
-    ```
+touch Dockerfile
+# ---- Stage 1: Build ----
+# This stage installs poetry and our dependencies into a virtual environment.
+FROM python:3.12-slim as builder
+
+# Set the working directory
+WORKDIR /app
+
+# Install poetry
+RUN pip install poetry
+
+# Configure poetry to create the virtual environment in the project's root
+RUN poetry config virtualenvs.in-project true
+
+# Copy only the files needed to install dependencies
+COPY apps/backend-fastapi/pyproject.toml apps/backend-fastapi/poetry.lock ./
+
+# Install production dependencies
+# --no-root: Don't install the project itself, just the dependencies
+# --no-dev: Skip development dependencies
+RUN poetry install --no-root --no-dev
+
+
+# ---- Stage 2: Final ----
+# This stage copies the installed dependencies and our application code
+# into a clean python image to create a small, optimized final image.
+FROM python:3.12-slim as final
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the virtual environment from the builder stage
+COPY --from=builder /app/.venv ./.venv
+
+# Copy our application code
+COPY apps/backend-fastapi/main.py .
+
+# Activate the virtual environment by adding it to the PATH
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Expose the port the app runs on
+EXPOSE 8000
+
+# Command to run the application
+# --host 0.0.0.0 makes the server accessible from outside the container
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+
+
+# back to root
+docker build -t backend-fastapi:0.1.0 -f .
+k3d image import backend-fastapi:0.1.0 -c fursight-ai
+
+
+# create helm chart for fastapi to be added to cluster
+cd infra/kubernetes/charts/
+helm create backend-fastapi
+rm backend-fastapi/templates/ingress.yaml
+rm backend-fastapi/templates/hpa.yaml
+rm backend-fastapi/templates/serviceaccount.yaml
+rm backend-fastapi/templates/tests/test-connection.yaml
+
+
+# in values.yaml
+# backend-fastapi/values.yaml
+
+replicaCount: 1
+
+image:
+  repository: backend-fastapi
+  pullPolicy: IfNotPresent # Crucial for using local k3d images
+  tag: "0.1.0"
+
+service:
+  type: ClusterIP
+  port: 8000 # The FastAPI app runs on port 8000
+
+# We are not using Ingress or a ServiceAccount for this simple service yet
+ingress:
+  enabled: false
+
+serviceAccount:
+  create: false
+
+
+
+
+helm install backend-fastapi ./backend-fastapi
+# create backdoor as rn only ClusterIP
+kubectl port-forward svc/backend-fastapi 8001:8000
+
+
+
+
+
+
+
+
 
 ### Step 3.3: Create Kubernetes Secrets
 Securely store the OIDC client credentials you get from the Keycloak UI.
