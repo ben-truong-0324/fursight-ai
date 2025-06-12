@@ -1,0 +1,16 @@
+# infra/kubernetes/manifests/monitoring/prometheus-values.yaml
+
+grafana:
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    annotations:
+      cert-manager.io/cluster-issuer: selfsigned-issuer
+    hosts:
+      - grafana.fursight.local
+    path: /
+    pathType: Prefix
+    tls:
+      - secretName: grafana-tls
+        hosts:
+          - grafana.fursight.local

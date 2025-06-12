@@ -448,6 +448,47 @@ https://app.fursight.local:9443
 
 
 
+#### Add monitoring
+
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+kubectl create namespace monitoring
+helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring
+kubectl get pods -n monitoring -w
+# to customize, do helm upgrades
+
+cd infra/kubernetes/manifests
+mkdir monitoring
+cd monitoring
+touch prometheus-values.yaml
+'''
+# infra/kubernetes/manifests/monitoring/prometheus-values.yaml
+grafana:
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    annotations:
+      cert-manager.io/cluster-issuer: selfsigned-issuer
+    hosts:
+      - grafana.fursight.local
+    path: /
+    pathType: Prefix
+    tls:
+      - secretName: grafana-tls
+        hosts:
+          - grafana.fursight.local
+'''
+
+helm upgrade prometheus prometheus-community/kube-prometheus-stack \
+  --namespace monitoring \
+  -f infra/kubernetes/manifests/monitoring/prometheus-values.yaml
+
+helm chart default:
+Username: admin
+Password: prom-operator
+
+
+
 
 
 1.  Navigate to your FastAPI application's source code directory:
