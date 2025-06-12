@@ -1,0 +1,25 @@
+# whoami-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: whoami-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: "selfsigned-issuer" # Tell cert-manager to use our issuer
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure # Tell Traefik to use the secure entrypoint
+spec:
+  ingressClassName: traefik # Important: Tell Kubernetes this is for Traefik
+  rules:
+  - host: "whoami.fursight.local"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: whoami-service
+            port:
+              number: 80
+  tls: # This section requests a certificate
+  - hosts:
+    - "whoami.fursight.local"
+    secretName: whoami-tls-secret # cert-manager will create a secret with this name

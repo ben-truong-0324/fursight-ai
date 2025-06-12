@@ -1,0 +1,36 @@
+# whoami-app.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whoami-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: whoami
+  template:
+    metadata:
+      labels:
+        app: whoami
+    spec:
+      containers:
+        - name: whoami-container
+          image: "traefik/whoami" # A simple "whoami" web server from Traefik
+          ports:
+            - containerPort: 80 # The application inside the container listens on port 80
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: whoami-service
+spec:
+  selector:
+    app: whoami # This connects the Service to the Deployment above
+  ports:
+    - name: web # We can name the port
+      protocol: TCP
+      port: 80 # The Service will be available on port 80 inside the cluster
+      targetPort: 80 # The Service will forward traffic to port 80 on the pods

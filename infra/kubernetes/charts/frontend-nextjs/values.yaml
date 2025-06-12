@@ -1,0 +1,39 @@
+# values.yaml
+# -- Replica count for the deployment
+replicaCount: 1
+
+image:
+  # -- The repository (name) of the image we loaded into k3d
+  repository: frontend-nextjs
+  # -- The tag of the image we built (e.g., 0.1.0)
+  tag: "0.1.0"
+  # -- Since the image is already in the cluster, we don't need to pull it from a remote registry.
+  # IfNotPresent means it will only pull if the image is not already on the node.
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  # -- The port your Next.js application listens on inside the container
+  port: 3000
+
+ingress:
+  enabled: true
+  # -- We must specify our traefik ingress class
+  className: "traefik"
+  annotations:
+    # -- Add cert-manager annotation to automatically get a certificate
+    cert-manager.io/cluster-issuer: "selfsigned-issuer"
+  hosts:
+    - host: "app.fursight.local" # <-- Your app's desired hostname
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+   - secretName: frontend-tls-secret # <-- cert-manager will create this secret
+     hosts:
+       - "app.fursight.local" # <-- The hostname to secure
+
+serviceAccount:
+  create: false
+autoscaling:
+  enabled: false

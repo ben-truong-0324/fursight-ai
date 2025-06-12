@@ -1,0 +1,25 @@
+# infra/kubernetes/manifests/traefik/dashboard-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: traefik-dashboard-ingress
+  namespace: kube-system # Create this Ingress in the kube-system namespace
+  annotations:
+    cert-manager.io/cluster-issuer: "selfsigned-issuer" # Use our self-signed issuer
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: "traefik.fursight.local"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: traefik # The name of the Traefik service
+            port:
+              number: 9000 # The port for the dashboard API
+  tls:
+  - hosts:
+    - "traefik.fursight.local"
+    secretName: traefik-dashboard-tls-secret # cert-manager will create this
