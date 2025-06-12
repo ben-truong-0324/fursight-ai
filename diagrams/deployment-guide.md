@@ -8,11 +8,13 @@ This guide details the simplest, most direct method to deploy the FurrSight stac
 
 **Goal:** Prepare your local machine with the necessary tools and project structure.
 
-1.  **On Your Local Machine (macOS):**
-    - Install **Homebrew** if you don't have it (this is the standard package manager for macOS).
-    - Install necessary command-line tools using Homebrew:
+1.  **On Local Machine (macOS):**
       ```bash
       brew install git docker kubectl helm k3d
+
+      Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+      choco install git kubernetes-cli kubernetes-helm k3d -y
       ```
     - Install and run **Docker Desktop**.
 
