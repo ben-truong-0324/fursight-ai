@@ -19,27 +19,36 @@ The user is building a "best-in-class" local development environment on macOS. T
     * The `kube-prometheus-stack` Helm chart is installed in the `monitoring` namespace.
     * This provides cluster-wide metrics collection with Prometheus and visualization with Grafana.
     * Grafana is exposed via a standard `Ingress` at `https://grafana.fursight.local:9443`.
-    * Configuration is managed via `infra/kubernetes/manifests/monitoring/prometheus-values.yaml`.
 
 ## IV. Deployed Applications
 1.  **`whoami` Service (for testing):**
     * Exposed via a standard `Ingress` object.
 2.  **Traefik Dashboard:**
     * Exposed via a standard `Ingress` object.
-3.  **`frontend-nextjs` Application:**
+3.  **`frontend-nextjs` Application (v0.2.0):**
     * Deployed via a custom Helm chart.
-    * Exposed and secured with a standard `Ingress` at `https://app.fursight.local:9443`.
+    * Exposed and secured at `https://app.fursight.local:9443`.
+    * Includes a `/demo` page that successfully fetches data from the `backend-fastapi` service.
+4.  **`backend-fastapi` Application (v0.1.0):**
+    * A Python FastAPI service created with Poetry.
+    * Deployed via a custom Helm chart.
+    * Exposed internally within the cluster via a `ClusterIP` service on port 8000.
 
 ## V. Established Conventions & File Structure
 The project follows a clean Infrastructure-as-Code (IaC) structure.
 
 ├── apps/
+│   ├── backend-fastapi/
+│   │   ├── Dockerfile
+│   │   ├── main.py
+│   │   └── pyproject.toml
 │   └── frontend-nextjs/
 │       ├── Dockerfile
-│       └── .dockerignore
+│       └── src/ # Using App Router
 └── infra/
     └── kubernetes/
         ├── charts/
+        │   ├── backend-fastapi/
         │   └── frontend-nextjs/
         └── manifests/
             ├── apps/
@@ -51,7 +60,3 @@ The project follows a clean Infrastructure-as-Code (IaC) structure.
             ├── monitoring/
             │   └── prometheus-values.yaml
             └── traefik-dashboard-ingress.yaml
-
-* Helm is used for deploying our own applications and configuring third-party applications.
-* `cert-manager` handles TLS.
-* All hostnames are managed in the local `/etc/hosts` file.

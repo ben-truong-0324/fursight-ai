@@ -605,6 +605,20 @@ kubectl port-forward svc/backend-fastapi 8001:8000
 
 
 
+########
+npm run dev
+
+docker build -t frontend-nextjs:0.2.0 .
+k3d image import frontend-nextjs:0.2.0 -c fursight-ai
+helm upgrade frontend-release ./infra/kubernetes/charts/frontend-nextjs/ \
+  --namespace default \
+  --set image.tag=0.2.0
+  
+kubectl get deployment frontend-release-frontend-nextjs -n default -o jsonpath='{.spec.template.spec.containers[0].image}'
+
+kubectl get pods -w
+
+
 
 
 

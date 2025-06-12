@@ -1,14 +1,18 @@
 # Project Roadmap & History
 
 ## I. Completed: Path A - Strengthen the Platform
-The initial platform has been strengthened with a complete monitoring solution.
 * **DONE:** Installed and configured the `kube-prometheus-stack` Helm chart.
 * **DONE:** Exposed the Grafana service via a secure Ingress.
-* **DONE:** Logged into Grafana and confirmed access to default dashboards.
 
-## II. Next Steps: Path B - Build the Application
-Our current goal is to build and deploy a backend API and integrate it with the existing frontend.
-1.  **Create FastAPI Backend:** Create a simple "Hello World" FastAPI application.
-2.  **Containerize & Ship:** Write a `Dockerfile` for the Python app, build it, and import it into the `k3d` cluster.
-3.  **Deploy with Helm:** Create a new Helm chart for the FastAPI backend.
-4.  **Integrate:** Configure the `frontend-nextjs` application to make an API call from a `/demo` page to the FastAPI backend via its internal Kubernetes service name.
+## II. Completed: Path B - Build the Application
+* **DONE:** Created a "Hello World" FastAPI application using Poetry.
+* **DONE:** Containerized the application using a multi-stage `Dockerfile`.
+* **DONE:** Deployed the application into the cluster using a dedicated Helm chart.
+* **DONE:** Integrated the `frontend-nextjs` application to fetch data from the backend.
+
+## III. Next Steps: Path C - Deploy AI/ML Inference Server on Windows/NVIDIA
+Our new goal is to build a new cluster on a Windows host with an NVIDIA GPU. We will deploy a vLLM server that leverages this hardware.
+1.  **Prepare Windows Host & Create GPU-Enabled Cluster:** Install all necessary prerequisites on the Windows machine (NVIDIA Drivers, WSL2, CUDA for WSL) and create a new `k3d` cluster with GPU pass-through enabled.
+2.  **Install NVIDIA GPU Operator:** Deploy the official NVIDIA GPU Operator via Helm. This will automatically configure the cluster nodes with the required drivers and container runtimes to manage the GPU.
+3.  **Deploy vLLM Server (GPU):** Create Kubernetes manifests (`Deployment` and `Service`) to run a vLLM server pod that requests a GPU resource.
+4.  **Test the Service:** Port-forward to the pod and use `curl` to interact with the OpenAI-compatible `/v1/completions` endpoint to verify GPU-accelerated inference.
