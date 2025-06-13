@@ -1,0 +1,43 @@
+# A list of models to deploy. Each item in this list will be deployed as its own
+# independent Deployment and Service within the cluster.
+models:
+  - name: opt-125m
+    # The Hugging Face model repository to use
+    repository: "facebook/opt-125m"
+    # Number of pods for this specific model
+    replicaCount: 1
+    # Per-model resource allocation
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "500m"
+      limits:
+        memory: "4Gi"
+        cpu: "2"
+
+  # - name: gpt2
+  #   repository: "gpt2"
+  #   replicaCount: 1
+  #   resources:
+  #     requests:
+  #       memory: "2Gi"
+  #       cpu: "500m"
+  #     limits:
+  #       memory: "4Gi"
+  #       cpu: "2"
+
+# Global settings that apply to all models deployed by this chart
+device: "cpu"
+
+
+
+ingress:
+  enabled: true
+  hostname: vllm.fursight.local
+  annotations:
+    # Use the self-signed issuer we set up for the project
+    cert-manager.io/cluster-issuer: selfsigned-issuer
+  tls:
+    - secretName: vllm-server-tls # cert-manager will create this secret for us
+      hosts:
+        - vllm.fursight.local

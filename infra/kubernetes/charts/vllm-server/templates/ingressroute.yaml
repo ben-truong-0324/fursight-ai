@@ -1,0 +1,26 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: vllm-server-ingressroute
+  annotations:
+    # This annotation tells cert-manager to create a certificate for this IngressRoute
+    {{- toYaml .Values.ingress.annotations | nindent 4 }}
+spec:
+  entryPoints:
+    - websecure # Use the HTTPS entrypoint defined by k3d/Traefik
+  routes:
+  {{- range .Values.models }}
+    - match: Host(`{{ $.Values.ingress.hostname }}`) && PathPrefix(`/models/{{ .name }}`)
+      kind: Rule
+      services:
+        - name: vllm-server-{{ .name }}
+          port: 8000
+      middlewares:
+        # Here we apply the specific middleware for each model's route
+        - name: {{ printf "vllm-server-stripprefix-%s" .name }}
+  {{- end }}
+  tls:
+    # This tells Traefik to use the TLS secret that cert-manager creates
+    secretName: {{ (first .Values.ingress.tls).secretName }}
+{{- end }}

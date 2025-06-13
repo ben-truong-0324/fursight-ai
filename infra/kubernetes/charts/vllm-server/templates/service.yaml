@@ -1,0 +1,24 @@
+{{/* We start a loop that will iterate over each model in the .Values.models list */}}
+{{- range .Values.models }}
+apiVersion: v1
+kind: Service
+metadata:
+  # The service name is dynamically created using the model's 'name'
+  # e.g., vllm-server-opt-125m
+  name: vllm-server-{{ .name }}
+  labels:
+    # We label the service for better organization
+    app: vllm-server-{{ .name }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+      name: http
+  # This service selects pods with a label that ALSO matches the model's name
+  selector:
+    app: vllm-server-{{ .name }}
+---
+{{/* The '---' is crucial. It separates the multiple YAML documents we are creating in this one file. */}}
+{{- end }}

@@ -55,6 +55,10 @@
       sudo nano /etc/hosts
       127.0.0.1 traefik.fursight.local # add this to last line
       127.0.0.1 whoami.fursight.local
+      127.0.0.1 vllm.fursight.local
+      127.0.0.1 app.fursight.local
+
+
 
       control + O, Enter, Control + X
       ```
@@ -620,8 +624,51 @@ kubectl get pods -w
 
 
 
+### Step 3.2: Create vLLM server
 
+# infra/kubernetes/manifests/apps
+mkdir vllm-server
+helm create infra/kubernetes/charts/vllm-server
+rm -rf infra/kubernetes/charts/vllm-server/templates/* infra/kubernetes/charts/vllm-server/charts
 
+helm install vllm-server infra/kubernetes/charts/vllm-server
+
+kubectl get deployments
+kubectl get services
+kubectl port-forward svc/vllm-server-opt-125m 8080:8000
+
+'''
+curl http://localhost:8080/v1/completions \
+-H "Content-Type: application/json" \
+-d '{
+    "model": "facebook/opt-125m",
+    "prompt": "San Francisco is a",
+    "max_tokens": 7,
+    "temperature": 0
+}'
+'''
+
+File: infra/kubernetes/charts/vllm-server/templates/middleware.yaml
+File: infra/kubernetes/charts/vllm-server/templates/ingressroute.yaml
+
+127.0.0.1 vllm.fursight.local
+
+helm upgrade vllm-server infra/kubernetes/charts/vllm-server
+# Check for vllm IngressRoute
+kubectl get ingressroutes
+# Check for vllm two new Middleware objects
+kubectl get middlewares
+
+'''
+curl --insecure https://vllm.fursight.local:9443/models/opt-125m/v1/completions \
+-H "Content-Type: application/json" \
+-d '{
+    "model": "facebook/opt-125m",
+    "prompt": "A Kubernetes Ingress is",
+    "max_tokens": 10,
+    "temperature": 0
+}'
+'''
 
 ### Step 3.3: Create Kubernetes Secrets
 Securely store the OIDC client credentials you get from the Keycloak UI.

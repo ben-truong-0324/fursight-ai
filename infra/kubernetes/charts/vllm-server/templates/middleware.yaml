@@ -1,0 +1,17 @@
+{{/* Only create these resources if ingress is enabled in values.yaml */}}
+{{- if .Values.ingress.enabled -}}
+{{/* Loop through each model to create a dedicated middleware for it */}}
+{{- range .Values.models }}
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  # e.g., vllm-server-stripprefix-opt-125m
+  name: {{ printf "vllm-server-stripprefix-%s" .name }}
+spec:
+  stripPrefix:
+    prefixes:
+      # e.g., /models/opt-125m
+      - {{ printf "/models/%s" .name }}
+---
+{{- end }}
+{{- end }}

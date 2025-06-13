@@ -1,0 +1,47 @@
+{{- range .Values.models }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-server-{{ .name }}
+  labels:
+    app: vllm-server-{{ .name }}
+spec:
+  # The replica count is sourced from each model's specific config
+  replicas: {{ .replicaCount }}
+  selector:
+    matchLabels:
+      app: vllm-server-{{ .name }}
+  template:
+    metadata:
+      labels:
+        # This label is critical for the corresponding Service to find these Pods
+        app: vllm-server-{{ .name }}
+    spec:
+      containers:
+        - name: vllm-server-container
+          image: vllm/vllm-openai:latest
+          args:
+            - "--model"
+            - "{{ .repository }}" # Dynamically sets the model to load
+            - "--device"
+            - "{{ $.Values.device }}" # Uses the global device value from the top of values.yaml
+          ports:
+            - name: http
+              containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 120
+            periodSeconds: 20
+          # The entire resources block is injected from our values file
+          resources:
+{{- toYaml .resources | nindent 12 }}
+---
+{{- end }}

@@ -33,6 +33,11 @@ The user is building a "best-in-class" local development environment on macOS. T
     * A Python FastAPI service created with Poetry.
     * Deployed via a custom Helm chart.
     * Exposed internally within the cluster via a `ClusterIP` service on port 8000.
+5.  **`vllm-server` (Multi-Model):**
+    * Deployed via a dynamic, reusable Helm chart.
+    * Serves multiple language models concurrently (`opt-125m`, `gpt2`).
+    * Exposed and secured via a Traefik `IngressRoute` at `https://vllm.fursight.local:9443`.
+    * Uses path-based routing (`/models/<model-name>`) and `Middleware` to route to the correct model service.
 
 ## V. Established Conventions & File Structure
 The project follows a clean Infrastructure-as-Code (IaC) structure.
@@ -49,7 +54,15 @@ The project follows a clean Infrastructure-as-Code (IaC) structure.
     └── kubernetes/
         ├── charts/
         │   ├── backend-fastapi/
-        │   └── frontend-nextjs/
+        │   ├── frontend-nextjs/
+        │   └── vllm-server/
+        │       ├── Chart.yaml
+        │       ├── templates/
+        │       │   ├── deployment.yaml
+        │       │   ├── ingressroute.yaml
+        │       │   ├── middleware.yaml
+        │       │   └── service.yaml
+        │       └── values.yaml
         └── manifests/
             ├── apps/
             │   └── whoami/

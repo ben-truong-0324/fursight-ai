@@ -1,18 +1,14 @@
-# Project Roadmap & History
+## IV. Next Steps
+With a robust application and AI inference platform in place, we have a clear roadmap for building a sophisticated, end-to-end AI application stack.
 
-## I. Completed: Path A - Strengthen the Platform
-* **DONE:** Installed and configured the `kube-prometheus-stack` Helm chart.
-* **DONE:** Exposed the Grafana service via a secure Ingress.
+* **Path D: LangChain Ecosystem Integration:** The immediate next step is to build on our raw model serving capabilities. We will deploy and integrate the LangChain ecosystem, including `LangServe` for deploying chains, `LangGraph` for building complex, stateful agentic workflows, and connecting everything to `LangSmith` for detailed tracing and observability.
 
-## II. Completed: Path B - Build the Application
-* **DONE:** Created a "Hello World" FastAPI application using Poetry.
-* **DONE:** Containerized the application using a multi-stage `Dockerfile`.
-* **DONE:** Deployed the application into the cluster using a dedicated Helm chart.
-* **DONE:** Integrated the `frontend-nextjs` application to fetch data from the backend.
+* **Path E: Strengthen Observability:** With more complex services running, we will circle back to our monitoring stack. We'll integrate the LangChain components and the vLLM servers with Prometheus and build custom Grafana dashboards to visualize performance, trace data, and key application metrics.
 
-## III. Next Steps: Path C - Deploy AI/ML Inference Server on Windows/NVIDIA
-Our new goal is to build a new cluster on a Windows host with an NVIDIA GPU. We will deploy a vLLM server that leverages this hardware.
-1.  **Prepare Windows Host & Create GPU-Enabled Cluster:** Install all necessary prerequisites on the Windows machine (NVIDIA Drivers, WSL2, CUDA for WSL) and create a new `k3d` cluster with GPU pass-through enabled.
-2.  **Install NVIDIA GPU Operator:** Deploy the official NVIDIA GPU Operator via Helm. This will automatically configure the cluster nodes with the required drivers and container runtimes to manage the GPU.
-3.  **Deploy vLLM Server (GPU):** Create Kubernetes manifests (`Deployment` and `Service`) to run a vLLM server pod that requests a GPU resource.
-4.  **Test the Service:** Port-forward to the pod and use `curl` to interact with the OpenAI-compatible `/v1/completions` endpoint to verify GPU-accelerated inference.
+* **Path F: AI Application Integration:** We will connect our core applications to the new AI capabilities. This involves modifying the `frontend-nextjs` and `backend-fastapi` applications to communicate with the services deployed via LangServe, building a user-facing feature that leverages our AI chains and agents.
+
+* **Path G: Introduce GitOps:** We will formalize our deployment process by setting up a GitOps controller like Flux or Argo CD. This will automate syncing the state of our cluster with the manifests declared in a Git repository.
+
+* **Path H: Advanced Networking:** We will evolve our ingress layer into a more powerful API Gateway. This will involve exploring more advanced traffic shaping, routing, authentication, and rate-limiting strategies to manage the APIs exposed by our various services.
+
+* **Path I: Stateful Services:** To support more complex applications, we will deploy and manage stateful services within the cluster, such as databases (e.g., PostgreSQL) and messaging queues (e.g., RabbitMQ or NATS).
